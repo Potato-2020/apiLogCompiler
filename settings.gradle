@@ -1,0 +1,3 @@
+include ':apiCompiler'
+include ':app'
+rootProject.name = "ApiCompiler"
