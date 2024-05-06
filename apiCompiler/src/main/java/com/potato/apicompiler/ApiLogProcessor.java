@@ -20,6 +20,8 @@ import java.util.TreeMap;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
+import javax.annotation.processing.FilerException;
+import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
@@ -28,15 +30,16 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.tools.Diagnostic;
 
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
 
 /**
- * @Author wangguoli
+ * wangguoli
  * 使用规则：在你的接口方法上加上注解即可（本项目中，在@{com.epoch.rupeeLoan.manager.ApiManager}类中，每个方法上添加注解），注解如下：
- * @ApiLog(nameChinese = "首页信息", nameEnglish = ApiURL.GET_HOME)
+ * ApiLog(nameChinese = "首页信息", nameEnglish = ApiURL.GET_HOME)
  * build之后会自动生成一个Java文件：ApiMap(记录了所有接口)
  */
 @AutoService(Processor.class)
@@ -49,10 +52,14 @@ public class ApiLogProcessor extends AbstractProcessor {
     private Filer filerUtils;
     private Map<String, String> groupMap = new TreeMap<>();
 
+    private Messager messager;
+
     @Override
     public synchronized void init(ProcessingEnvironment processingEnvironment) {
         super.init(processingEnvironment);
         filerUtils = processingEnvironment.getFiler();
+        messager = processingEnvironment.getMessager();
+        messager.printMessage(Diagnostic.Kind.OTHER, "ApiLogProcessor init Success.");
     }
 
     //处理注解
@@ -62,18 +69,25 @@ public class ApiLogProcessor extends AbstractProcessor {
             Set<? extends Element> apiLogElements = roundEnvironment.getElementsAnnotatedWith(ApiLog.class);
             if (!Utils.isEmpty(apiLogElements)) {
                 processApiLog(apiLogElements);
+            } else {
+                messager.printMessage(Diagnostic.Kind.NOTE, "ApiLog annotation not found.");
             }
             return true;
+        } else {
+            return false;
         }
-        return false;
     }
 
     private void processApiLog(Set<? extends Element> apiLogElements) {
         for (Element element : apiLogElements) {
             ApiLog apiLog = element.getAnnotation(ApiLog.class);
-            String key = apiLog.nameEnglish();
-            String value = apiLog.nameChinese();
-            groupMap.put(key, value);
+            if (apiLog != null) {
+                String key = apiLog.nameEnglish();
+                String value = apiLog.nameChinese();
+                groupMap.put(key, value);
+            } else {
+                messager.printMessage(Diagnostic.Kind.NOTE, "ApiLog annotation is null for element: " + element.getSimpleName());
+            }
         }
         generatedGroup();
     }
@@ -100,7 +114,8 @@ public class ApiLogProcessor extends AbstractProcessor {
             for (Map.Entry entry : groupMap.entrySet()) {
                 String key = (String) entry.getKey();
                 if (!key.contains("{") && !key.equals(""))
-                blockBuilder.addStatement("mapApi.put($S, $S)", entry.getKey(), entry.getValue());
+                    blockBuilder.addStatement("mapApi.put($S, $S)", entry.getKey(), entry.getValue());
+                messager.printMessage(Diagnostic.Kind.NOTE,"Added static block statement: mapApi.put(\"" + key + "\", \"" + entry.getValue() + "\")");
             }
             //generate javadoc
             clazzBuilder.addJavadoc("created by Wangguoli.don't delete it,please!!!\nTime: "
@@ -116,6 +131,7 @@ public class ApiLogProcessor extends AbstractProcessor {
             javaFile.writeTo(filerUtils);
         } catch (IOException e) {
             e.printStackTrace();
+            messager.printMessage(Diagnostic.Kind.NOTE,"Failed to generate ApiLogMap.java: " + e.getMessage());
         }
     }
 }
