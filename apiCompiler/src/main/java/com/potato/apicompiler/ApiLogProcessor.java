@@ -1,7 +1,6 @@
 package com.potato.apicompiler;
 
 import com.google.auto.service.AutoService;
-import com.potato.apiannotation.ApiLog;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -44,7 +43,7 @@ import static javax.lang.model.element.Modifier.STATIC;
  */
 @AutoService(Processor.class)
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
-@SupportedAnnotationTypes({"com.potato.apiannotation.ApiLog"})
+@SupportedAnnotationTypes({"com.potato.apicompiler.ApiLog"})
 public class ApiLogProcessor extends AbstractProcessor {
 
     private static final boolean IS_DEBUG = true;
