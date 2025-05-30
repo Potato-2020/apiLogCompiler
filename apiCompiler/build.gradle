@@ -1,23 +1,45 @@
-apply plugin: 'java-library'
-apply from:"../publishJavaLib.gradle"
+plugins {
+    id 'java-library'
+}
 
-// 导入本地lib
+apply from: "../publishJavaLib.gradle"
+
 repositories {
     flatDir {
         dirs 'libs'
     }
+    mavenCentral()  // 添加Maven中央仓库以更好地解析依赖
 }
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    annotationProcessor 'com.google.auto.service:auto-service:1.0-rc4'
-    implementation 'com.google.auto.service:auto-service:1.0-rc4'
-    implementation 'com.squareup:javapoet:1.8.0'
-    implementation files('libs/apiAnnotation.jar')
+
+    // AutoService 注解处理器
+    annotationProcessor 'com.google.auto.service:auto-service:1.1.1'
+    implementation 'com.google.auto.service:auto-service:1.1.1'
+
+    // JavaPoet 代码生成
+    implementation 'com.squareup:javapoet:1.13.0'
+
+    // API日志库
+    api 'com.github.Potato-2020:apiLog:1.1.5'
 }
 
-tasks.withType(JavaCompile){
-    options.encoding='UTF-8'
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8  // 升级到Java 8以获得更好的兼容性
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-sourceCompatibility = "1.7"
-targetCompatibility = "1.7"
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    // 如果你必须使用Java 7，取消下面这行注释
+    // options.release = 7
+}
+
+// 如果你确实需要保持Java 7兼容性，使用这个替代上面的java块
+/*
+compileJava {
+    sourceCompatibility = '1.7'
+    targetCompatibility = '1.7'
+}
+*/
