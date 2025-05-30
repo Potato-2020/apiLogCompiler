@@ -42,7 +42,7 @@ import static javax.lang.model.element.Modifier.STATIC;
  * build之后会自动生成一个Java文件：ApiMap(记录了所有接口)
  */
 @AutoService(Processor.class)
-@SupportedSourceVersion(SourceVersion.RELEASE_7)
+@SupportedSourceVersion(SourceVersion.RELEASE_8)
 @SupportedAnnotationTypes({"com.potato.apicompiler.ApiLog"})
 public class ApiLogProcessor extends AbstractProcessor {
 
