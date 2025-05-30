@@ -1,12 +1,13 @@
 apply plugin: "maven-publish"
+
 // 指定编码
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
 }
 
-//指定生成的javadoc文档编码格式，防止javadoc中文乱码
+// 指定javadoc编码格式
 tasks.withType(Javadoc) {
-    options{
+    options {
         encoding "UTF-8"
         charSet 'UTF-8'
         links "http://docs.oracle.com/javase/8/docs/api"
@@ -14,21 +15,70 @@ tasks.withType(Javadoc) {
 }
 
 group = 'com.github.Potato-2020'
-version '1.1.6'
+version = '1.1.6'  // 使用=赋值避免歧义
 
 repositories {
     mavenCentral()
 }
 
+// 生成源码jar
 task sourcesJar(type: Jar, dependsOn: classes) {
     classifier = 'sources'
     from sourceSets.main.allSource
 }
+
+// 生成javadoc jar
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
     from javadoc.destinationDir
 }
 
+// 配置发布
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+
+            // 显式指定GAV坐标
+            groupId = 'com.github.Potato-2020'
+            artifactId = 'apiCompiler'
+            version = '1.1.6'
+
+            // 可选：添加POM信息
+            pom {
+                name = 'API Compiler'
+                description = 'A library for API log processing'
+                url = 'https://github.com/Potato-2020/apiLogCompiler'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+            }
+        }
+    }
+
+    repositories {
+        // 发布到本地Maven仓库
+        mavenLocal()
+
+        // 如需发布到远程仓库，取消以下注释并配置凭据
+        /*
+        maven {
+            url = "https://maven.pkg.github.com/Potato-2020/apiLogCompiler"
+            credentials {
+                username = System.getenv("GITHUB_USER")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+        */
+    }
+}
+
+// 构建时自动生成源码和文档jar
 artifacts {
     archives sourcesJar
     archives javadocJar

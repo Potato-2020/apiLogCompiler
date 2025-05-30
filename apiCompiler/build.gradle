@@ -20,9 +20,9 @@ dependencies {
 
     // JavaPoet 代码生成
     implementation 'com.squareup:javapoet:1.13.0'
-
-    // API日志库
-    api 'com.github.Potato-2020:apiLog:1.1.5'
+//
+//    // API日志库
+//    api 'com.github.Potato-2020:apiLog:1.1.5'
 }
 
 java {
